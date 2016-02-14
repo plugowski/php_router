@@ -1,0 +1,15 @@
+{
+    "name": "plugowski/php_router",
+    "description": "Simple routing engine, which allows anonymous functions to execute code on route.",
+    "require-dev": {
+        "phpunit/phpunit": "4.8.9"
+    },
+    "license": "New BSD",
+    "authors": [
+        {
+            "name": "Paweł Ługowski",
+            "email": "pawelugowski@gmail.com"
+        }
+    ],
+    "require": {}
+}
