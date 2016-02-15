@@ -11,5 +11,10 @@
             "email": "pawelugowski@gmail.com"
         }
     ],
-    "require": {}
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "PhpRouter\\": "src/"
+        }
+    }
 }

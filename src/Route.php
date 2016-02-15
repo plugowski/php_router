@@ -1,6 +1,8 @@
 <?php
 namespace PhpRouter;
 
+use Exception;
+
 /**
  * Class Router
  */
@@ -52,6 +54,8 @@ class Route
     }
 
     /**
+     * Parse route and save results in object properties
+     *
      * @param string $route
      * @throws \Exception
      * @return void
@@ -67,7 +71,7 @@ class Route
 
         if (!empty($result['type'])) {
             if (!in_array($result['type'], $this->types)) {
-                throw new \Exception(sprintf('Wrong type format! Allowed [%s]'), implode(', ', $this->types));
+                throw new \Exception(sprintf('Wrong type format! Allowed [%s]', implode(', ', $this->types)));
             }
 
             $this->type = $result['type'];
@@ -99,7 +103,7 @@ class Route
     }
 
     /**
-     * Execute specified Route
+     * Execute specified Route - anonymous function or pointed class->method
      *
      * @param array $params
      */
@@ -116,11 +120,14 @@ class Route
      * @param string $class
      * @param string $method
      * @param array $params
+     * @throws Exception
      */
     private function call($class, $method, array $params = [])
     {
         if (class_exists($class) && method_exists($class, $method)) {
             call_user_func_array([$class, $method], $params);
+        } else {
+            throw new Exception('No class or method found!');
         }
     }
 }
