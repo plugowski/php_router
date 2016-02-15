@@ -14,12 +14,13 @@ class Route
     private $patterns = [
         'route' => '/^
             (?<method>[\|\w]+)\h+
-            (?:(?<path>@(\w+)|[^\h]+))
-            (?:\h+\[(?<type>\w+)\])?/x',
+            (?<path>([@\/\w]+))
+            (?:\h+\[(?<type>\w+)\])?$/x',
         'callback' => '/^
             (?<class>[^\h]+)\h*
             (?<type>->|::)\h*
-            (?<method>[^\h]+)$/x'
+            (?<method>[^\h]+)$/x',
+        'param' => '/@(?<name>[\w]+)/'
     ];
     /**
      * @var callable|string
@@ -32,6 +33,10 @@ class Route
     /**
      * @var string
      */
+    private $pattern;
+    /**
+     * @var string
+     */
     private $type = 'sync';
     /**
      * @var array
@@ -41,16 +46,32 @@ class Route
      * @var array
      */
     private $methods = ['GET', 'POST', 'PUT', 'DELETE'];
+    /**
+     * @var array
+     */
+    private $namedParams = [];
+    /**
+     * @var array
+     */
+    private $paramRules = [];
 
     /**
      * Router constructor.
      * @param string $route
-     * @param callable $callback
+     * @param array|callable $rules
+     * @param callable|null $callback
+     * @throws Exception
      */
-    public function __construct($route, $callback)
+    public function __construct($route, $rules, $callback = null)
     {
+        if (is_callable($rules) || is_string($rules)) {
+            $this->callback = $rules;
+        } else {
+            $this->paramRules = $rules;
+            $this->callback = $callback;
+        }
+
         $this->parseRoute($route);
-        $this->callback = $callback;
     }
 
     /**
@@ -76,6 +97,20 @@ class Route
 
             $this->type = $result['type'];
         }
+
+        $this->pattern = $this->preparePattern();
+    }
+
+    /**
+     * @return string
+     */
+    private function preparePattern()
+    {
+        $pattern = preg_replace_callback($this->patterns['param'], function($match){
+            return isset($this->paramRules[$match['name']]) ? '(' . $this->paramRules[$match['name']] . ')' : '([\w-]+)';
+        }, $this->getUrl());
+
+        return sprintf('|^%s$|', $pattern);
     }
 
     /**
@@ -103,17 +138,40 @@ class Route
     }
 
     /**
+     * @return string
+     */
+    public function getPattern()
+    {
+        return $this->pattern;
+    }
+
+
+    public function parseParams($requestUrl)
+    {
+        preg_match($this->getPattern(), $requestUrl, $values);
+        preg_match_all($this->patterns['param'], $this->getUrl(), $names);
+
+        unset($values[0]);
+        $values = array_values($values);
+
+        if (count($values) != count($names['name']) + 1) {
+            foreach ($names['name'] as $key => $name) {
+                $this->namedParams[$name] = $values[$key];
+            }
+        }
+    }
+
+    /**
      * Execute specified Route - anonymous function or pointed class->method
      *
-     * @param array $params
      * @return mixed
      */
-    public function dispatch(array $params = [])
+    public function dispatch()
     {
         if (is_callable($this->callback)) {
-            return call_user_func_array($this->callback, $params);
+            return call_user_func_array($this->callback, [$this->namedParams]);
         } else if (preg_match($this->patterns['callback'], $this->callback, $result)) {
-            return $this->call($result['class'], $result['method'], $params);
+            return $this->call($result['class'], $result['method'], [$this->namedParams]);
         }
         return false;
     }

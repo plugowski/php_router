@@ -28,6 +28,7 @@ class Router
     }
 
     /**
+     * @return mixed
      */
     public function run()
     {
@@ -37,8 +38,11 @@ class Router
                 continue;
             }
 
+            // if we found matched route, parse params and run
+            $route->parseParams($this->routeRequest->getRequestUrl());
             return $route->dispatch();
         }
+        // @todo: 404
     }
 
     /**
@@ -53,10 +57,9 @@ class Router
         if ($this->routeRequest->isAjax() && 'ajax' != $route->getType()) {
             return false;
         }
-        if ($this->routeRequest->getRequestUrl() !== $route->getUrl()) {
+        if (!preg_match($route->getPattern(), $this->routeRequest->getRequestUrl())) {
             return false;
         }
-
         return true;
     }
 }
