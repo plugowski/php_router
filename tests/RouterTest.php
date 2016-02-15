@@ -4,8 +4,6 @@ namespace PhpRouter\Test;
 use PhpRouter\Route;
 use PHPUnit_Framework_TestCase;
 
-require 'Test.php';
-
 /**
  * Class RouterTest
  */

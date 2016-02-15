@@ -106,26 +106,29 @@ class Route
      * Execute specified Route - anonymous function or pointed class->method
      *
      * @param array $params
+     * @return mixed
      */
     public function dispatch(array $params = [])
     {
         if (is_callable($this->callback)) {
-            call_user_func_array($this->callback, $params);
+            return call_user_func_array($this->callback, $params);
         } else if (preg_match($this->patterns['callback'], $this->callback, $result)) {
-            $this->call($result['class'], $result['method'], $params);
+            return $this->call($result['class'], $result['method'], $params);
         }
+        return false;
     }
 
     /**
      * @param string $class
      * @param string $method
      * @param array $params
+     * @return mixed
      * @throws Exception
      */
     private function call($class, $method, array $params = [])
     {
         if (class_exists($class) && method_exists($class, $method)) {
-            call_user_func_array([$class, $method], $params);
+            return call_user_func_array([$class, $method], $params);
         } else {
             throw new Exception('No class or method found!');
         }

@@ -37,7 +37,7 @@ class Router
                 continue;
             }
 
-            $route->dispatch();
+            return $route->dispatch();
         }
     }
 
