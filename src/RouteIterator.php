@@ -2,13 +2,13 @@
 namespace PhpRouter;
 
 use Countable;
-use RecursiveIterator;
+use Iterator;
 
 /**
  * Class RouteIterator
  * @package PhpRouter
  */
-abstract class RouteIterator implements RecursiveIterator, Countable
+abstract class RouteIterator implements Iterator, Countable
 {
     /**
      * @var Route[]
@@ -58,25 +58,6 @@ abstract class RouteIterator implements RecursiveIterator, Countable
     public function rewind()
     {
         $this->index = 0;
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasChildren()
-    {
-        if ($this->valid() && ($this->current() instanceof RecursiveIterator)) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @return Route
-     */
-    public function getChildren()
-    {
-        return $this->routes[$this->index];
     }
 
     /**

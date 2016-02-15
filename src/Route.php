@@ -95,7 +95,7 @@ class Route
         $this->methods = explode('|', $result['method']);
         $this->url = $result['path'];
 
-        if (isset($result['extension'])) {
+        if (!empty($result['extension'])) {
             $this->extension = $result['extension'];
             $this->url .= '.' . $this->extension;
         }
