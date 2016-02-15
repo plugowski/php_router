@@ -15,6 +15,7 @@ class Route
         'route' => '/^
             (?<method>[\|\w]+)\h+
             (?<path>([@\/\w]+))
+            (?:\.(?<extension>\w+))?
             (?:\h+\[(?<type>\w+)\])?$/x',
         'callback' => '/^
             (?<class>[^\h]+)\h*
@@ -30,6 +31,10 @@ class Route
      * @var string
      */
     private $url;
+    /**
+     * @var string
+     */
+    private $extension;
     /**
      * @var string
      */
@@ -89,6 +94,11 @@ class Route
 
         $this->methods = explode('|', $result['method']);
         $this->url = $result['path'];
+
+        if (isset($result['extension'])) {
+            $this->extension = $result['extension'];
+            $this->url .= '.' . $this->extension;
+        }
 
         if (!empty($result['type'])) {
             if (!in_array($result['type'], $this->types)) {
