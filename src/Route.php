@@ -175,6 +175,7 @@ class Route
      * Execute specified Route - anonymous function or pointed class->method
      *
      * @return mixed
+     * @throws Exception
      */
     public function dispatch()
     {
@@ -183,7 +184,7 @@ class Route
         } else if (preg_match($this->patterns['callback'], $this->callback, $result)) {
             return $this->call($result['class'], $result['method'], [$this->namedParams]);
         }
-        return false;
+        throw new Exception('Wrong callback');
     }
 
     /**

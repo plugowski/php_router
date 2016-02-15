@@ -32,14 +32,6 @@ class RouteRequest
     }
 
     /**
-     * @return bool
-     */
-    public function isCli()
-    {
-        return ('cli' === PHP_SAPI);
-    }
-
-    /**
      * @return mixed
      */
     public function getProtocol()
@@ -78,22 +70,20 @@ class RouteRequest
      */
     private function setHeaders()
     {
-        if (!$this->isCli()) {
-            foreach ($_SERVER as $key => $value) {
-                if ('HTTP_' != substr($key, 0, 5)) {
-                    continue;
-                }
-                $name = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($key, 5)))));
-                $this->headers[$name] = $value;
+        foreach ($_SERVER as $key => $value) {
+            if ('HTTP_' != substr($key, 0, 5)) {
+                continue;
             }
+            $name = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($key, 5)))));
+            $this->headers[$name] = $value;
         }
 
         $this->protocol = $this->getRequestProtocol();
         $this->isAjax = ('XMLHttpRequest' == $this->getHeader('X-Requested-With'));
 
         $this->requestMethod = $_SERVER['REQUEST_METHOD'];
-        if (!is_null($this->getHeader('X-HTTP-Method-Override'))) {
-            $this->requestMethod = $this->getHeader('X-HTTP-Method-Override');
+        if (!is_null($this->getHeader('X-Http-Method-Override'))) {
+            $this->requestMethod = $this->getHeader('X-Http-Method-Override');
         } else if ('POST' == $_SERVER['REQUEST_METHOD'] && isset($_POST['_method'])) {
             $this->requestMethod = $_POST['_method'];
         }
