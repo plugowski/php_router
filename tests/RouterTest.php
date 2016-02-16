@@ -16,14 +16,16 @@ class RouterTest extends PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        parent::setUp();
-
         $this->collection = new RouteCollection();
-        $this->collection->attach(new Route('DELETE /', function(){ return 1; }));
+        $this->collection->attach(new Route('GET /', function(){ return 1; }));
         $this->collection->attach(new Route('GET /about_me', function(){ return 2; }));
-        $this->collection->attach(new Route('GET /contact', function(){ return 3; }));
-        $this->collection->attach(new Route('GET /contact [ajax]', function(){ return 4; }));
-        $this->collection->attach(new Route('POST /contact [ajax]', function(){ return 4; }));
+        $this->collection->attach(new Route('POST /about_me', function(){ return 3; }));
+        $this->collection->attach(new Route('GET /contact/@id', ['id' => '\w{3}\:\w{3}'], function($p){ return 'regex_' . $p['id']; }));
+        $this->collection->attach(new Route('GET /contact/@id', function($p){ return $p['id']; }));
+        $this->collection->attach(new Route('GET /ajax [ajax]', function(){ return 4; }));
+        $this->collection->attach(new Route('GET /nonajax', function(){ return 5; }));
+
+        parent::setUp();
     }
 
     /**
@@ -35,14 +37,19 @@ class RouterTest extends PHPUnit_Framework_TestCase
         $router = new Router($request, $this->collection);
 
         $this->assertEquals(2, $router->run());
+
+        $request = $this->getRequestMock('POST', '/about_me');
+        $router = new Router($request, $this->collection);
+
+        $this->assertEquals(3, $router->run());
     }
 
     /**
      * @test
      */
-    public function shouldMismatchAjaxRoute()
+    public function shouldCallAjaxRouteWithAjaxFalse()
     {
-        $request = $this->getRequestMock('GET', '/contacts', true);
+        $request = $this->getRequestMock('GET', '/ajax');
         $router = new Router($request, $this->collection);
 
         $this->assertNull($router->run());
@@ -51,12 +58,39 @@ class RouterTest extends PHPUnit_Framework_TestCase
     /**
      * @test
      */
-    public function shouldMatchAjaxRoute()
+    public function shouldCallAjaxRouteWithAjaxTrue()
     {
-        $request = $this->getRequestMock('POST', '/contact', true);
+        $request = $this->getRequestMock('GET', '/ajax', true);
         $router = new Router($request, $this->collection);
 
         $this->assertEquals(4, $router->run());
+    }
+
+    /**
+     * @test
+     */
+    public function shouldCallNonAjaxRouteWithAjax()
+    {
+        $request = $this->getRequestMock('GET', '/nonajax', true);
+        $router = new Router($request, $this->collection);
+
+        $this->assertEquals(5, $router->run());
+    }
+
+    /**
+     * @test
+     */
+    public function shouldCallRouteWithParam()
+    {
+        $request = $this->getRequestMock('GET', '/contact/test_123');
+        $router = new Router($request, $this->collection);
+
+        $this->assertEquals('test_123', $router->run());
+
+        $request = $this->getRequestMock('GET', '/contact/xxx:xxx');
+        $router = new Router($request, $this->collection);
+
+        $this->assertEquals('regex_xxx:xxx', $router->run());
     }
 
     /**

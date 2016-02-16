@@ -105,6 +105,8 @@ class RouteRequest
     }
 
     /**
+     * Check if request comes from https or http
+     *
      * @return string
      */
     private function getRequestProtocol()

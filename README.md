@@ -1,4 +1,4 @@
-# PhpRouter
+# PhpRouter PhpRouter ![alt text](https://img.shields.io/badge/licence-BSD--3--Clause-blue.svg "Licence") ![alt text](https://img.shields.io/badge/tests-19%20%2F%2019-brightgreen.svg "Tests") ![alt text](https://img.shields.io/badge/coverage-100%25-green.svg "Coverage")
 PHP router inspired on FatFree, CakePHP and own invention. 
 
 It allows to use anonymous functions as callback as well as OOP classes and methods. 

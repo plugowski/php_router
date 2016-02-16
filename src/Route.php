@@ -112,6 +112,8 @@ class Route
     }
 
     /**
+     * Build regex, required for Router to check if current path mach
+     *
      * @return string
      */
     private function preparePattern()
@@ -155,7 +157,11 @@ class Route
         return $this->pattern;
     }
 
-
+    /**
+     * Parse named params and build associative array with them
+     *
+     * @param $requestUrl
+     */
     public function parseParams($requestUrl)
     {
         preg_match($this->getPattern(), $requestUrl, $values);
@@ -164,7 +170,7 @@ class Route
         unset($values[0]);
         $values = array_values($values);
 
-        if (count($values) != count($names['name']) + 1) {
+        if (count($values) == count($names['name'])) {
             foreach ($names['name'] as $key => $name) {
                 $this->namedParams[$name] = $values[$key];
             }
@@ -188,6 +194,8 @@ class Route
     }
 
     /**
+     * Call class and method defined as callback
+     *
      * @param string $class
      * @param string $method
      * @param array $params

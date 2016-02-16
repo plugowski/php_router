@@ -4,6 +4,8 @@ namespace PhpRouter\Test;
 use PhpRouter\Route;
 use PHPUnit_Framework_TestCase;
 
+require 'Test.php';
+
 /**
  * Class RouteTest
  */
@@ -16,22 +18,52 @@ class RouteTest extends PHPUnit_Framework_TestCase
     {
         $route = new Route('GET /test/page.html', 'A->index');
 
+        $this->assertEquals('|^/test/page.html$|', $route->getPattern());
         $this->assertEquals(['GET'], $route->getMethods());
-        $this->assertEquals('/test/page.html', $route->getUrl());
         $this->assertEquals('sync', $route->getType());
+        $this->assertEquals('/test/page.html', $route->getUrl());
     }
 
     /**
      * @test
      */
-    public function shouldCreateRouteWithDefiniedNamedParam()
+    public function shouldCreateRouteWithNamedParam()
     {
-        $route = new Route('GET|POST /some_page/@id', ['id' => '\d{2}\-\w{4}'], function($param){
-            return $param['id'];
+        $route = new Route('GET|POST /some_page/@id', 'A->index');
+        $this->assertEquals('|^/some_page/([\w-]+)$|', $route->getPattern());
+    }
+
+    /**
+     * @test
+     */
+    public function shouldCreateRouteWithNamedParamMatchToRegex()
+    {
+        $route = new Route('GET|POST /some_page/@id', ['id' => '[a-z]{2}\-[a-z]{4}'], 'A->index');
+        $this->assertEquals('|^/some_page/([a-z]{2}\-[a-z]{4})$|', $route->getPattern());
+    }
+
+    /**
+     * @test
+     */
+    public function shouldCallAndExecuteAnonymousFunction()
+    {
+        $route = new Route('GET /test/@data.html [ajax]', ['data' => '[a-z]{2}:[a-z]{3}'], function($params){
+            return $params['data'];
         });
 
-        $route->parseParams('/some_page/12-zaqw');
-        $this->assertEquals('12-zaqw', $route->dispatch());
+        $route->parseParams('/test/xx:www.html');
+        $this->assertEquals('xx:www', $route->dispatch());
+    }
+
+    /**
+     * @test
+     */
+    public function shouldCallSpecifiedCallback()
+    {
+        $route = new Route('GET /test/page/@number.html', '\PhpRouter\Test\Test->page');
+
+        $route->parseParams('/test/page/42.html');
+        $this->assertEquals(42, $route->dispatch());
     }
 
     /**
@@ -40,8 +72,7 @@ class RouteTest extends PHPUnit_Framework_TestCase
     public function shouldThrowWrongCallbackException()
     {
         $this->setExpectedException('Exception');
-        $route = new Route('GET /test.html', 'nothingSpecial');
-        $route->dispatch();
+        (new Route('GET /test.html', 'nothingSpecial'))->dispatch();
     }
 
     /**
@@ -65,45 +96,9 @@ class RouteTest extends PHPUnit_Framework_TestCase
     /**
      * @test
      */
-    public function shouldCallAndExecuteAnonymousFunction()
-    {
-        $route = new Route('GET /test.html [ajax]', function(){
-            echo 'XXX';
-        });
-
-        ob_start();
-        $route->dispatch();
-        $result = ob_get_clean();
-
-        $this->assertEquals('XXX', $result);
-    }
-
-    /**
-     * @test
-     */
-    public function shouldThrowClasOrMethodNotFoundException()
+    public function shouldThrowClassOrMethodNotFoundException()
     {
         $this->setExpectedException('Exception');
-        $route = new Route('GET /test/page.html', 'A->test');
-        $route->dispatch();
-    }
-
-    /**
-     * @test
-     */
-    public function shouldCallSpecifiedCallback()
-    {
-//        $class = $this->getMockBuilder('Test')->setMethods(['login'])->getMock();
-//
-//        $class->expects($this->any())
-//            ->method('login');
-//
-//        $route = new Route('GET /test/page.html', 'Test->login');
-//
-//        ob_start();
-//        $route->dispatch(['someData']);
-//        $result = ob_get_clean();
-//
-//        $this->assertEquals('logged!', $result);
+        (new Route('GET /test/page.html', 'A->test'))->dispatch();
     }
 }

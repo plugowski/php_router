@@ -28,6 +28,8 @@ class Router
     }
 
     /**
+     * Run Router and dispatch requested Route
+     *
      * @return mixed
      */
     public function run()
@@ -46,6 +48,8 @@ class Router
     }
 
     /**
+     * Match if current Route match to the request url, method and type
+     *
      * @param Route $route
      * @return bool
      */
