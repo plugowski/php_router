@@ -54,7 +54,7 @@ class Router
         if (!in_array($this->routeRequest->getRequestMethod(), $route->getMethods())) {
             return false;
         }
-        if ($this->routeRequest->isAjax() && 'ajax' != $route->getType()) {
+        if (!$this->routeRequest->isAjax() && 'ajax' == $route->getType()) {
             return false;
         }
         if (!preg_match($route->getPattern(), $this->routeRequest->getRequestUrl())) {
