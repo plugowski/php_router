@@ -2,6 +2,7 @@
 namespace PhpRouter;
 
 use Exception;
+use ReflectionClass;
 
 /**
  * Class Router
@@ -27,6 +28,10 @@ class Route
      * @var callable|string
      */
     private $callback;
+    /**
+     * @var array
+     */
+    private $callbackArgs = [];
     /**
      * @var string
      */
@@ -65,15 +70,18 @@ class Route
      * @param string $route
      * @param array|callable $rules
      * @param callable|null $callback
+     * @param array $callbackArgs
      * @throws Exception
      */
-    public function __construct($route, $rules, $callback = null)
+    public function __construct($route, $rules, $callback = null, $callbackArgs = [])
     {
         if (is_callable($rules) || is_string($rules)) {
             $this->callback = $rules;
+            $this->callbackArgs = (array)$callback;
         } else {
             $this->paramRules = $rules;
             $this->callback = $callback;
+            $this->callbackArgs = (array)$callbackArgs;
         }
 
         $this->parseRoute($route);
@@ -188,7 +196,7 @@ class Route
         if (is_callable($this->callback)) {
             return call_user_func_array($this->callback, [$this->namedParams]);
         } else if (preg_match($this->patterns['callback'], $this->callback, $result)) {
-            return $this->call($result['class'], $result['method'], [$this->namedParams]);
+            return $this->call($result['class'], $result['method'], $result['type'], [$this->namedParams]);
         }
         throw new Exception('Wrong callback');
     }
@@ -198,16 +206,22 @@ class Route
      *
      * @param string $class
      * @param string $method
+     * @param string $type
      * @param array $params
      * @return mixed
      * @throws Exception
      */
-    private function call($class, $method, array $params = [])
+    private function call($class, $method, $type, array $params = [])
     {
-        if (class_exists($class) && method_exists($class, $method)) {
-            return call_user_func_array([$class, $method], $params);
-        } else {
+        if (!class_exists($class) || !method_exists($class, $method)) {
             throw new Exception('No class or method found!');
         }
+
+        if ('->' == $type) {
+            $reflection = new ReflectionClass($class);
+            $class = !empty($this->callbackArgs) ? $reflection->newInstanceArgs($this->callbackArgs) : $reflection->newInstance();
+        }
+
+        return call_user_func_array([$class, $method], $params);
     }
 }
