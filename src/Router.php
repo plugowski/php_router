@@ -1,6 +1,8 @@
 <?php
 namespace PhpRouter;
 
+use PhpRouter\Exception\RouteNotFoundException;
+
 /**
  * Class Router
  * @package PhpRouter
@@ -31,6 +33,7 @@ class Router
      * Run Router and dispatch requested Route
      *
      * @return mixed
+     * @throws RouteNotFoundException
      */
     public function run()
     {
@@ -44,7 +47,8 @@ class Router
             $route->parseParams($this->routeRequest->getRequestUrl());
             return $route->dispatch();
         }
-        // @todo: 404
+
+        throw new RouteNotFoundException();
     }
 
     /**

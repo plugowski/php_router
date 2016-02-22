@@ -49,10 +49,12 @@ class RouterTest extends PHPUnit_Framework_TestCase
      */
     public function shouldCallAjaxRouteWithAjaxFalse()
     {
+        $this->setExpectedException('PhpRouter\Exception\RouteNotFoundException');
+
         $request = $this->getRequestMock('GET', '/ajax');
         $router = new Router($request, $this->collection);
 
-        $this->assertNull($router->run());
+        $router->run();
     }
 
     /**

@@ -71,7 +71,7 @@ class RouteTest extends PHPUnit_Framework_TestCase
      */
     public function shouldThrowWrongCallbackException()
     {
-        $this->setExpectedException('Exception');
+        $this->setExpectedException('PhpRouter\Exception\RouteWrongCallbackException');
         (new Route('GET /test.html', 'nothingSpecial'))->dispatch();
     }
 
@@ -80,7 +80,7 @@ class RouteTest extends PHPUnit_Framework_TestCase
      */
     public function shouldThrowInvalidRouteException()
     {
-        $this->setExpectedException('Exception');
+        $this->setExpectedException('PhpRouter\Exception\RouteInvalidDefinitionException');
         new Route('/test.html', 'A->index');
     }
 
@@ -89,7 +89,7 @@ class RouteTest extends PHPUnit_Framework_TestCase
      */
     public function shouldThrowInvalidTypeException()
     {
-        $this->setExpectedException('Exception');
+        $this->setExpectedException('PhpRouter\Exception\RouteInvalidTypeException');
         new Route('GET /test.html [not_exists]', 'A->index');
     }
 
@@ -98,7 +98,7 @@ class RouteTest extends PHPUnit_Framework_TestCase
      */
     public function shouldThrowClassOrMethodNotFoundException()
     {
-        $this->setExpectedException('Exception');
+        $this->setExpectedException('PhpRouter\Exception\RouteCallbackNotFoundException');
         (new Route('GET /test/page.html', 'A->test'))->dispatch();
     }
 }

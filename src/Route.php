@@ -1,7 +1,10 @@
 <?php
 namespace PhpRouter;
 
-use Exception;
+use PhpRouter\Exception\RouteCallbackNotFoundException;
+use PhpRouter\Exception\RouteInvalidDefinitionException;
+use PhpRouter\Exception\RouteInvalidTypeException;
+use PhpRouter\Exception\RouteWrongCallbackException;
 use ReflectionClass;
 
 /**
@@ -15,7 +18,7 @@ class Route
     private $patterns = [
         'route' => '/^
             (?<method>[\|\w]+)\h+
-            (?<path>([@\/\w]+))
+            (?<url>([@\/\w]+))
             (?:\.(?<extension>\w+))?
             (?:\h+\[(?<type>\w+)\])?$/x',
         'callback' => '/^
@@ -71,7 +74,8 @@ class Route
      * @param array|callable $rules
      * @param callable|null $callback
      * @param array $callbackArgs
-     * @throws Exception
+     * @throws RouteInvalidDefinitionException
+     * @throws RouteInvalidTypeException
      */
     public function __construct($route, $rules, $callback = null, $callbackArgs = [])
     {
@@ -91,17 +95,17 @@ class Route
      * Parse route and save results in object properties
      *
      * @param string $route
-     * @throws \Exception
-     * @return void
+     * @throws RouteInvalidDefinitionException
+     * @throws RouteInvalidTypeException
      */
     private function parseRoute($route)
     {
         if (!preg_match($this->patterns['route'], $route, $result)) {
-            throw new \Exception('Wrong route format!');
+            throw new RouteInvalidDefinitionException();
         }
 
         $this->methods = explode('|', $result['method']);
-        $this->url = $result['path'];
+        $this->url = $result['url'];
 
         if (!empty($result['extension'])) {
             $this->extension = $result['extension'];
@@ -110,7 +114,7 @@ class Route
 
         if (!empty($result['type'])) {
             if (!in_array($result['type'], $this->types)) {
-                throw new \Exception(sprintf('Wrong type format! Allowed [%s]', implode(', ', $this->types)));
+                throw new RouteInvalidTypeException();
             }
 
             $this->type = $result['type'];
@@ -189,7 +193,7 @@ class Route
      * Execute specified Route - anonymous function or pointed class->method
      *
      * @return mixed
-     * @throws Exception
+     * @throws RouteWrongCallbackException
      */
     public function dispatch()
     {
@@ -198,7 +202,7 @@ class Route
         } else if (preg_match($this->patterns['callback'], $this->callback, $result)) {
             return $this->call($result['class'], $result['method'], $result['type'], [$this->namedParams]);
         }
-        throw new Exception('Wrong callback');
+        throw new RouteWrongCallbackException();
     }
 
     /**
@@ -209,12 +213,12 @@ class Route
      * @param string $type
      * @param array $params
      * @return mixed
-     * @throws Exception
+     * @throws RouteCallbackNotFoundException
      */
     private function call($class, $method, $type, array $params = [])
     {
         if (!class_exists($class) || !method_exists($class, $method)) {
-            throw new Exception('No class or method found!');
+            throw new RouteCallbackNotFoundException();
         }
 
         if ('->' == $type) {
