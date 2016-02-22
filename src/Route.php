@@ -134,7 +134,7 @@ class Route
             return isset($this->paramRules[$match['name']]) ? '(' . $this->paramRules[$match['name']] . ')' : '([\w-]+)';
         }, $this->getUrl());
 
-        return sprintf('|^%s$|', $pattern);
+        return sprintf('~^%s$~', $pattern);
     }
 
     /**
